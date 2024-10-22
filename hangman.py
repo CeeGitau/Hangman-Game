@@ -29,8 +29,8 @@ def update_word_list(*args):
     guess_word = random.choice(word_categories[selected_category.get()])
     update_word_display()
     update_attempts_display()
-    update_guessed_letters_display()  # Update the display of guessed letters
     draw_hangman()
+    reset_letter_buttons()
 
 # Function to check if the player has won
 def check_win():
@@ -40,17 +40,18 @@ def check_win():
 def check_loss():
     return attempts == 0
 
-# Function to handle a letter guess
-def guess_letter():
+# Function to handle a letter guess from both input and button clicks
+def guess_letter(letter=None):
     global attempts
-    letter = letter_entry.get().lower()
+    if letter is None:  # Input from text entry box
+        letter = letter_entry.get().lower()
+    
     if letter.isalpha() and len(letter) == 1:
         if letter in guessed_letters:
             messagebox.showinfo("Hangman", f"You've already guessed '{letter}'")
         elif letter in guess_word:
             guessed_letters.append(letter)
             update_word_display()
-            update_guessed_letters_display()  # Update guessed letters display
             if check_win():
                 messagebox.showinfo("Hangman", "Congratulations! You win!")
                 reset_game()
@@ -58,11 +59,14 @@ def guess_letter():
             guessed_letters.append(letter)
             attempts -= 1
             update_attempts_display()
-            update_guessed_letters_display()  # Update guessed letters display
             draw_hangman()
             if check_loss():
                 messagebox.showinfo("Hangman", "Better luck next time. The word was: " + guess_word)
                 reset_game()
+
+        # Disable and cross out letter button
+        if letter in letter_buttons:
+            letter_buttons[letter].config(state="disabled", fg="red", text=letter + "̶")  # Crossed out
         letter_entry.delete(0, tk.END)  # Clear the input field
     else:
         messagebox.showinfo("Hangman", "Please enter a single letter")
@@ -86,10 +90,6 @@ def update_word_display():
 def update_attempts_display():
     attempts_label.config(text=f"Attempts left: {attempts}")
 
-# Function to update the guessed letters display
-def update_guessed_letters_display():
-    guessed_letters_display.config(text="Guessed letters: " + ", ".join(guessed_letters))
-
 # Function to draw the hangman figure
 def draw_hangman():
     canvas.delete("hangman")
@@ -106,6 +106,12 @@ def draw_hangman():
     if attempts < 1:
         canvas.create_line(150, 225, 175, 250, width=4, tags="hangman")  # Right Leg
 
+# Function to reset letter buttons
+def reset_letter_buttons():
+    for letter, button in letter_buttons.items():
+        # Reset button text and appearance
+        button.config(state="normal", fg="black", text=letter)   
+
 # Create GUI elements
 category_label = tk.Label(window, text="Select Topic:", font=("Arial", 16))
 category_menu = tk.OptionMenu(window, selected_category, *word_categories.keys())
@@ -117,7 +123,7 @@ letter_entry = tk.Entry(window, width=5, font=("Arial", 16))
 
 # Frame to hold buttons side by side
 button_frame = tk.Frame(window)
-guess_button = tk.Button(button_frame, text="Guess", command=guess_letter)
+guess_button = tk.Button(button_frame, text="Guess", command=lambda: guess_letter())
 reset_button = tk.Button(button_frame, text="Reset", command=reset_game)
 guess_button.pack(side="left", padx=5)  # Add some padding between the buttons
 reset_button.pack(side="left", padx=5)
@@ -130,8 +136,15 @@ canvas.create_line(100, 100, 200, 100, width=4)  # Beam
 canvas.create_line(150, 100, 150, 120, width=4)  # Rope
 canvas.pack()
 
-# Label to display guessed letters
-guessed_letters_display = tk.Label(window, text="Guessed letters: ", font=("Arial", 16))
+# Create a frame to hold the letter buttons
+letters_frame = tk.Frame(window)
+letter_buttons = {}
+
+# Create letter buttons (A-Z)
+for letter in "abcdefghijklmnopqrstuvwxyz":
+    btn = tk.Button(letters_frame, text=letter, font=("Arial", 16), width=2, command=lambda l=letter: guess_letter(l))
+    btn.pack(side="left", padx=2, pady=5)
+    letter_buttons[letter] = btn
 
 # Pack GUI elements
 category_label.pack()
@@ -139,13 +152,12 @@ category_menu.pack(pady=5)
 word_label.pack()
 attempts_label.pack()
 letter_entry.pack()
-button_frame.pack(pady=10)  # Pack the frame that contains the buttons
-guessed_letters_display.pack(pady=10)  # Pack the guessed letters display
+button_frame.pack(pady=10)
+letters_frame.pack(pady=10)  # Pack the frame containing the letter buttons
 
 # Update initial displays
 update_word_display()
 update_attempts_display()
-update_guessed_letters_display()  # Update guessed letters display
 draw_hangman()
 
 # Set up a trace to call the function when a new category is selected
