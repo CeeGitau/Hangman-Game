@@ -2,11 +2,15 @@ import tkinter as tk
 from tkinter import messagebox
 import random
 
-# List of words for the game
-words = ["music", "wrought", "programming", "candid", "zombie"]
+# Categorized words based on topics
+word_categories = {
+    "Music": ["music", "melody", "harmony", "rhythm", "symphony"],
+    "Technology": ["programming", "algorithm", "computer", "software", "hardware"],
+    "Nature": ["forest", "ocean", "mountain", "river", "desert"],
+    "Random": ["wrought", "candid", "zombie", "puzzle", "mystery"]
+}
 
 # Initialize variables
-guess_word = random.choice(words)
 guessed_letters = []
 attempts = 6
 
@@ -14,9 +18,18 @@ attempts = 6
 window = tk.Tk()
 window.title("Hangman Game")
 
-# Function to check if the game is over
-def is_game_over():
-    return check_win() or check_loss()
+selected_category = tk.StringVar(value="Random")  # Default category
+guess_word = random.choice(word_categories[selected_category.get()])
+
+# Function to update the word list when a new category is selected
+def update_word_list(*args):
+    global guess_word, guessed_letters, attempts
+    guessed_letters = []
+    attempts = 6
+    guess_word = random.choice(word_categories[selected_category.get()])
+    update_word_display()
+    update_attempts_display()
+    draw_hangman()
 
 # Function to check if the player has won
 def check_win():
@@ -32,7 +45,7 @@ def guess_letter():
     letter = letter_entry.get().lower()
     if letter.isalpha() and len(letter) == 1:
         if letter in guessed_letters:
-            messagebox.showinfo("Hangman", f"You've already guessed '{letter}")
+            messagebox.showinfo("Hangman", f"You've already guessed '{letter}'")
         elif letter in guess_word:
             guessed_letters.append(letter)
             update_word_display()
@@ -53,13 +66,7 @@ def guess_letter():
 
 # Function to reset the game
 def reset_game():
-    global guess_word, guessed_letters, attempts
-    guess_word = random.choice(words)
-    guessed_letters = []
-    attempts = 6
-    update_word_display()
-    update_attempts_display()
-    draw_hangman()
+    update_word_list()
 
 # Function to update the word display
 def update_word_display():
@@ -93,6 +100,10 @@ def draw_hangman():
         canvas.create_line(150, 225, 175, 250, width=4, tags="hangman")  # Right Leg
 
 # Create GUI elements
+category_label = tk.Label(window, text="Select Topic:", font=("Arial", 16))
+category_menu = tk.OptionMenu(window, selected_category, *word_categories.keys())
+category_menu.config(width=10, font=("Arial", 14))
+
 word_label = tk.Label(window, text="", font=("Arial", 24))
 attempts_label = tk.Label(window, text="", font=("Arial", 16))
 letter_entry = tk.Entry(window, width=5, font=("Arial", 16))
@@ -113,6 +124,8 @@ canvas.create_line(150, 100, 150, 120, width=4)  # Rope
 canvas.pack()
 
 # Pack GUI elements
+category_label.pack()
+category_menu.pack(pady=5)
 word_label.pack()
 attempts_label.pack()
 letter_entry.pack()
@@ -122,6 +135,9 @@ button_frame.pack(pady=10)  # Pack the frame that contains the buttons
 update_word_display()
 update_attempts_display()
 draw_hangman()
+
+# Set up a trace to call the function when a new category is selected
+selected_category.trace("w", update_word_list)
 
 # Run the application
 window.mainloop()
