@@ -29,6 +29,7 @@ def update_word_list(*args):
     guess_word = random.choice(word_categories[selected_category.get()])
     update_word_display()
     update_attempts_display()
+    update_guessed_letters_display()  # Update the display of guessed letters
     draw_hangman()
 
 # Function to check if the player has won
@@ -49,6 +50,7 @@ def guess_letter():
         elif letter in guess_word:
             guessed_letters.append(letter)
             update_word_display()
+            update_guessed_letters_display()  # Update guessed letters display
             if check_win():
                 messagebox.showinfo("Hangman", "Congratulations! You win!")
                 reset_game()
@@ -56,6 +58,7 @@ def guess_letter():
             guessed_letters.append(letter)
             attempts -= 1
             update_attempts_display()
+            update_guessed_letters_display()  # Update guessed letters display
             draw_hangman()
             if check_loss():
                 messagebox.showinfo("Hangman", "Better luck next time. The word was: " + guess_word)
@@ -82,6 +85,10 @@ def update_word_display():
 # Function to update the attempts display
 def update_attempts_display():
     attempts_label.config(text=f"Attempts left: {attempts}")
+
+# Function to update the guessed letters display
+def update_guessed_letters_display():
+    guessed_letters_display.config(text="Guessed letters: " + ", ".join(guessed_letters))
 
 # Function to draw the hangman figure
 def draw_hangman():
@@ -123,6 +130,9 @@ canvas.create_line(100, 100, 200, 100, width=4)  # Beam
 canvas.create_line(150, 100, 150, 120, width=4)  # Rope
 canvas.pack()
 
+# Label to display guessed letters
+guessed_letters_display = tk.Label(window, text="Guessed letters: ", font=("Arial", 16))
+
 # Pack GUI elements
 category_label.pack()
 category_menu.pack(pady=5)
@@ -130,10 +140,12 @@ word_label.pack()
 attempts_label.pack()
 letter_entry.pack()
 button_frame.pack(pady=10)  # Pack the frame that contains the buttons
+guessed_letters_display.pack(pady=10)  # Pack the guessed letters display
 
 # Update initial displays
 update_word_display()
 update_attempts_display()
+update_guessed_letters_display()  # Update guessed letters display
 draw_hangman()
 
 # Set up a trace to call the function when a new category is selected
